@@ -1,15 +1,14 @@
 import io
 import streamlit as st
-import google.generativeai as genai
-import requests
+from google import genai
+from google.genai import types
 from PIL import Image
-import urllib.parse
 
 # Konfigurasi Tampilan Halaman Web
-st.set_page_config(page_title="AI Generator Kartun Edukasi", page_icon="🎨", layout="centered")
+st.set_page_config(page_title="Gemini Direct Image Generator", page_icon="🎨", layout="centered")
 
-st.title("🎨 Generator Ilustrasi Kartun Edukasi AI")
-st.caption("Memanfaatkan Gemini Flash-Lite untuk konsep & render ilustrasi bersih tanpa watermark.")
+st.title("🎨 Generator Ilustrasi Langsung dari Gemini AI")
+st.caption("Membuat gambar secara resmi menggunakan model Image Generation dari Google Gemini.")
 
 # Sidebar untuk Konfigurasi API Key
 with st.sidebar:
@@ -19,7 +18,7 @@ with st.sidebar:
         "Gemini API Key", 
         value=default_key, 
         type="password", 
-        help="Masukkan API Key Google Gemini Anda"
+        help="Masukkan API Key Google AI Studio Anda"
     )
     st.markdown("---")
     st.markdown("### 💡 Panduan Gaya Rujukan:")
@@ -34,16 +33,15 @@ prompt_user = st.text_area(
 )
 
 # Tombol Eksekusi Pembuatan Gambar
-if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_container_width=True):
+if st.button("🚀 Buat Gambar Langsung dari Gemini", type="primary", use_container_width=True):
     if not api_key:
         st.error("Silakan masukkan Gemini API Key Anda terlebih dahulu pada panel samping.")
     elif not prompt_user:
         st.warning("Mohon deskripsikan gambar yang ingin Anda buat.")
     else:
         try:
-            # 1. Menggunakan Gemini Flash-Lite untuk menyempurnakan prompt sesuai rujukan
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-3.5-flash-lite")
+            # Inisialisasi klien Google GenAI resmi
+            client = genai.Client(api_key=api_key)
             
             style_reference = (
                 "Consistent style matching an educational children's book illustration: "
@@ -52,38 +50,38 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
                 "suitable for elementary school education."
             )
             
-            prompt_system = f"Terjemahkan dan perkaya deskripsi berikut ke dalam bahasa Inggris yang sangat detail untuk konsep gambar ilustrasi:\n'{prompt_user}'\nDengan gaya rujukan: {style_reference}. Berikan HANYA teks prompt bahasa Inggris."
+            full_prompt = f"{prompt_user}. Style details: {style_reference}"
             
-            with st.spinner("Gemini Flash-Lite sedang merancang konsep gambar..."):
-                response_gemini = model.generate_content(prompt_system)
-                refined_prompt = response_gemini.text.strip()
-            
-            # 2. Render gambar tanpa watermark (nologo=true)
-            with st.spinner("AI sedang melukis gambar bersih... Mohon tunggu sebentar..."):
-                encoded_prompt = urllib.parse.quote(refined_prompt)
+            with st.spinner("Gemini sedang melukis gambar secara langsung... Mohon tunggu sebentar..."):
                 
-                # Parameter nologo=true ditambahkan untuk menghilangkan watermark
-                image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
+                # Memanggil model pembuat gambar resmi Google (Imagen / GenAI Image Model)
+                response = client.models.generate_images(
+                    model='imagen-3.0-generate-002',
+                    prompt=full_prompt,
+                    config=types.GenerateImagesConfig(
+                        number_of_images=1,
+                        output_mime_type="image/jpeg",
+                        aspect_ratio="1:1",
+                    )
+                )
                 
-                response = requests.get(image_url)
-                
-                if response.status_code == 200:
-                    image_bytes = response.content
+                # Mengambil byte gambar dari respons resmi Gemini
+                for generated_image in response.generated_images:
+                    image_bytes = generated_image.image.image_bytes
                     image = Image.open(io.BytesIO(image_bytes))
                     
-                    st.success("✨ Ilustrasi Berhasil Dibuat!")
+                    st.success("✨ Ilustrasi Berhasil Dibuat Langsung oleh Gemini!")
                     st.image(image, caption=f"Hasil: {prompt_user}", use_container_width=True)
                     
                     # Tombol Unduh Gambar
                     st.download_button(
                         label="📥 Download Gambar (JPG)",
                         data=image_bytes,
-                        file_name="ilustrasi_gaya_rujukan.jpg",
+                        file_name="ilustrasi_gemini.jpg",
                         mime="image/jpeg",
                         use_container_width=True
                     )
-                else:
-                    st.error("Gagal mengunduh gambar dari server.")
                     
         except Exception as err:
-            st.error(f"Terjadi kesalahan saat memproses: {str(err)}")
+            st.error(f"Terjadi kesalahan pada sistem Gemini: {str(err)}")
+            st.info("Pastikan API Key Anda memiliki kuota atau izin akses untuk layanan pembuat gambar (Imagen/GenAI Image).")
