@@ -1,14 +1,15 @@
 import io
 import streamlit as st
-from google import genai
-from google.genai import types
+import google.generativeai as genai
+import requests
 from PIL import Image
+import urllib.parse
 
 # Konfigurasi Tampilan Halaman Web
 st.set_page_config(page_title="AI Generator Kartun Edukasi", page_icon="🎨", layout="centered")
 
 st.title("🎨 Generator Ilustrasi Kartun Edukasi AI")
-st.caption("Buat gambar ilustrasi dengan gaya konsisten menggunakan model 3.5 Flash Lite.")
+st.caption("Memanfaatkan Gemini Flash-Lite untuk konsep & render ilustrasi konsisten.")
 
 # Sidebar untuk Konfigurasi API Key
 with st.sidebar:
@@ -40,10 +41,10 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
         st.warning("Mohon deskripsikan gambar yang ingin Anda buat.")
     else:
         try:
-            # Inisialisasi Klien Google GenAI resmi
-            client = genai.Client(api_key=api_key)
+            # 1. Menggunakan Gemini 3.5 Flash-Lite untuk menyempurnakan prompt sesuai rujukan
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.5-flash") # Menggunakan model Flash untuk teks/konsep
             
-            # Memasukkan panduan gaya rujukan secara otomatis ke dalam prompt
             style_reference = (
                 "Consistent style matching an educational children's book illustration: "
                 "clean 2D flat cartoon vector style, friendly characters with clear outlines, "
@@ -51,24 +52,21 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
                 "suitable for elementary school education."
             )
             
-            full_prompt = f"{prompt_user}. Style details: {style_reference}"
+            prompt_system = f"Terjemahkan dan perkaya deskripsi berikut ke dalam bahasa Inggris yang sangat detail untuk konsep gambar ilustrasi:\n'{prompt_user}'\nDengan gaya rujukan: {style_reference}. Berikan HANYA teks prompt bahasa Inggris."
             
-            with st.spinner("AI sedang melukis gambar menggunakan model 3.5 Flash Lite... Mohon tunggu sebentar..."):
+            with st.spinner("Gemini Flash-Lite sedang merancang konsep gambar..."):
+                response_gemini = model.generate_content(prompt_system)
+                refined_prompt = response_gemini.text.strip()
+            
+            # 2. Render gambar menggunakan engine yang stabil
+            with st.spinner("AI sedang melukis gambar... Mohon tunggu sebentar..."):
+                encoded_prompt = urllib.parse.quote(refined_prompt)
+                image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
                 
-                # Memanggil model 3.5 flash lite untuk generate gambar
-                result = client.models.generate_images(
-                    model='gemini-3.5-flash-lite',
-                    prompt=full_prompt,
-                    config=types.GenerateImagesConfig(
-                        number_of_images=1,
-                        output_mime_type="image/jpeg",
-                        aspect_ratio="1:1",
-                    )
-                )
+                response = requests.get(image_url)
                 
-                # Menampilkan hasil gambar ke layar
-                for generated_image in result.generated_images:
-                    image_bytes = generated_image.image.image_bytes
+                if response.status_code == 200:
+                    image_bytes = response.content
                     image = Image.open(io.BytesIO(image_bytes))
                     
                     st.success("✨ Ilustrasi Berhasil Dibuat!")
@@ -82,6 +80,8 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
                         mime="image/jpeg",
                         use_container_width=True
                     )
+                else:
+                    st.error("Gagal mengunduh gambar dari server.")
                     
         except Exception as err:
-            st.error(f"Terjadi kesalahan saat membuat gambar: {str(err)}")
+            st.error(f"Terjadi kesalahan saat memproses: {str(err)}")
