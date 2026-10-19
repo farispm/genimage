@@ -5,10 +5,10 @@ from google.genai import types
 from PIL import Image
 
 # Konfigurasi Tampilan Halaman Web
-st.set_page_config(page_title="Gemini AI Image Generator", page_icon="🎨", layout="centered")
+st.set_page_config(page_title="AI Generator Kartun Edukasi", page_icon="🎨", layout="centered")
 
-st.title("🎨 Generator Ilustrasi Edukasi AI")
-st.caption("Buat gambar ilustrasi kartun anak sekolah dengan gaya kustom secara instan.")
+st.title("🎨 Generator Ilustrasi Kartun Edukasi AI")
+st.caption("Buat gambar ilustrasi dengan gaya konsisten seperti contoh rujukan pilihan Anda.")
 
 # Sidebar untuk Konfigurasi API Key
 with st.sidebar:
@@ -21,27 +21,19 @@ with st.sidebar:
         help="Masukkan Gemini API Key Anda"
     )
     st.markdown("---")
-    st.markdown("### 💡 Tips Prompt:")
-    st.markdown("- Gunakan deskripsi yang jelas dan spesifik.")
-    st.markdown("- Contoh gaya: *'Cute flat cartoon style illustration, bright colors, clean background'*")
+    st.markdown("### 💡 Panduan Gaya Rujukan:")
+    st.markdown("- Ilustrasi datar 2D yang bersih (*clean 2D flat cartoon*).")
+    st.markdown("- Watak kanak-kanak sekolah dengan ekspresi ceria.")
+    st.markdown("- Warna cerah, latar belakang alam/sekolah yang rapi.")
 
 # Form Input Pengguna
 prompt_user = st.text_area(
-    "Deskripsikan gambar yang ingin Anda buat:", 
-    placeholder="Contoh: Seorang anak laki-laki mengenakan peci dan seragam sekolah sedang menyapu halaman rumah dengan ceria"
-)
-
-gaya_visual = st.selectbox(
-    "Pilih Gaya Gambar",
-    [
-        "Kartun Flat Edukasi Anak (Flat Cartoon)",
-        "Gaya Ilustrasi Buku Cerita (Storybook Style)",
-        "Gaya Garis Hitam Putih / Lembar Mewarnai (Line Art)"
-    ]
+    "Deskripsikan adegan gambar yang ingin dibuat:", 
+    placeholder="Contoh: Anak laki-laki mengenakan peci dan seragam sekolah sedang menyapu halaman rumah"
 )
 
 # Tombol Eksekusi Pembuatan Gambar
-if st.button("🚀 Buat Gambar Sekarang", type="primary", use_container_width=True):
+if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_container_width=True):
     if not api_key:
         st.error("Silakan masukkan Gemini API Key Anda terlebih dahulu pada panel samping.")
     elif not prompt_user:
@@ -51,10 +43,17 @@ if st.button("🚀 Buat Gambar Sekarang", type="primary", use_container_width=Tr
             # Inisialisasi Klien Google GenAI resmi
             client = genai.Client(api_key=api_key)
             
-            # Menggabungkan deskripsi user dengan gaya pilihan
-            full_prompt = f"{prompt_user}, style: {gaya_visual}, high quality, bright colors, educational children illustration, clean background"
+            # Memasukkan panduan gaya rujukan (style reference) secara otomatis ke dalam prompt
+            style_reference = (
+                "Consistent style matching an educational children's book illustration: "
+                "clean 2D flat cartoon vector style, friendly characters with clear outlines, "
+                "bright and cheerful colors, soft lighting, clean background, simple details, "
+                "suitable for elementary school education."
+            )
             
-            with st.spinner("AI sedang melukis gambar Anda... Mohon tunggu sebentar..."):
+            full_prompt = f"{prompt_user}. Style details: {style_reference}"
+            
+            with st.spinner("AI sedang melukis gambar mengikut gaya rujukan... Mohon tunggu sebentar..."):
                 
                 # Memanggil model Gemini untuk generate gambar
                 result = client.models.generate_images(
@@ -72,14 +71,14 @@ if st.button("🚀 Buat Gambar Sekarang", type="primary", use_container_width=Tr
                     image_bytes = generated_image.image.image_bytes
                     image = Image.open(io.BytesIO(image_bytes))
                     
-                    st.success("✨ Gambar Berhasil Dibuat!")
+                    st.success("✨ Ilustrasi Berhasil Dibuat!")
                     st.image(image, caption=f"Hasil: {prompt_user}", use_container_width=True)
                     
                     # Tombol Unduh Gambar
                     st.download_button(
                         label="📥 Download Gambar (JPG)",
                         data=image_bytes,
-                        file_name="ilustrasi_edukasi.jpg",
+                        file_name="ilustrasi_gaya_rujukan.jpg",
                         mime="image/jpeg",
                         use_container_width=True
                     )
