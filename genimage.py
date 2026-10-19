@@ -57,7 +57,7 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
                 
                 # Memanggil model Gemini untuk generate gambar
                 result = client.models.generate_images(
-                    model='gemini-3.1-flash-lite-image',
+                    model='gemini-3.5-flash-lite',
                     prompt=full_prompt,
                     config=types.GenerateImagesConfig(
                         number_of_images=1,
