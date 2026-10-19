@@ -50,7 +50,7 @@ if st.button("🚀 Buat Ilustrasi Sekarang", type="primary", use_container_width
         try:
             # 1. Konfigurasi dan Gunakan Gemini Model Flash untuk Menyempurnakan Prompt
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.5-flash")
+            model = genai.GenerativeModel("gemini-3.5-flash-lite")
             
             system_instruction = (
                 "Anda adalah asisten AI pendidikan. Tugas Anda adalah menerjemahkan dan memperkaya deskripsi "
