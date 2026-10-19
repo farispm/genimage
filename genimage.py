@@ -8,7 +8,7 @@ from PIL import Image
 st.set_page_config(page_title="AI Generator Kartun Edukasi", page_icon="🎨", layout="centered")
 
 st.title("🎨 Generator Ilustrasi Kartun Edukasi AI")
-st.caption("Buat gambar ilustrasi dengan gaya konsisten seperti contoh rujukan pilihan Anda.")
+st.caption("Buat gambar ilustrasi dengan gaya konsisten menggunakan model 3.5 Flash Lite.")
 
 # Sidebar untuk Konfigurasi API Key
 with st.sidebar:
@@ -43,7 +43,7 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
             # Inisialisasi Klien Google GenAI resmi
             client = genai.Client(api_key=api_key)
             
-            # Memasukkan panduan gaya rujukan (style reference) secara otomatis ke dalam prompt
+            # Memasukkan panduan gaya rujukan secara otomatis ke dalam prompt
             style_reference = (
                 "Consistent style matching an educational children's book illustration: "
                 "clean 2D flat cartoon vector style, friendly characters with clear outlines, "
@@ -53,9 +53,9 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
             
             full_prompt = f"{prompt_user}. Style details: {style_reference}"
             
-            with st.spinner("AI sedang melukis gambar mengikut gaya rujukan... Mohon tunggu sebentar..."):
+            with st.spinner("AI sedang melukis gambar menggunakan model 3.5 Flash Lite... Mohon tunggu sebentar..."):
                 
-                # Memanggil model Gemini untuk generate gambar
+                # Memanggil model 3.5 flash lite untuk generate gambar
                 result = client.models.generate_images(
                     model='gemini-3.5-flash-lite',
                     prompt=full_prompt,
