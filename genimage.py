@@ -54,7 +54,7 @@ if st.button("🚀 Buat Ilustrasi Sekarang", type="primary", use_container_width
                 
                 # Memanggil DALL-E 3 API untuk generate gambar
                 response = client.images.generate(
-                    model="dall-e-3",
+                    model="dall-e-2",
                     prompt=full_prompt,
                     size="1024x1024",
                     quality="standard",
