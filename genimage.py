@@ -9,7 +9,7 @@ import urllib.parse
 st.set_page_config(page_title="AI Generator Kartun Edukasi", page_icon="🎨", layout="centered")
 
 st.title("🎨 Generator Ilustrasi Kartun Edukasi AI")
-st.caption("Memanfaatkan Gemini Flash-Lite untuk konsep & render ilustrasi konsisten.")
+st.caption("Memanfaatkan Gemini Flash-Lite untuk konsep & render ilustrasi bersih tanpa watermark.")
 
 # Sidebar untuk Konfigurasi API Key
 with st.sidebar:
@@ -19,7 +19,7 @@ with st.sidebar:
         "Gemini API Key", 
         value=default_key, 
         type="password", 
-        help="Masukkan Gemini API Key Anda"
+        help="Masukkan API Key Google Gemini Anda"
     )
     st.markdown("---")
     st.markdown("### 💡 Panduan Gaya Rujukan:")
@@ -41,9 +41,9 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
         st.warning("Mohon deskripsikan gambar yang ingin Anda buat.")
     else:
         try:
-            # 1. Menggunakan Gemini 3.5 Flash-Lite untuk menyempurnakan prompt sesuai rujukan
+            # 1. Menggunakan Gemini Flash-Lite untuk menyempurnakan prompt sesuai rujukan
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-3.5-flash-lite") # Menggunakan model Flash untuk teks/konsep
+            model = genai.GenerativeModel("gemini-2.5-flash")
             
             style_reference = (
                 "Consistent style matching an educational children's book illustration: "
@@ -58,9 +58,11 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
                 response_gemini = model.generate_content(prompt_system)
                 refined_prompt = response_gemini.text.strip()
             
-            # 2. Render gambar menggunakan engine yang stabil
-            with st.spinner("AI sedang melukis gambar... Mohon tunggu sebentar..."):
+            # 2. Render gambar tanpa watermark (nologo=true)
+            with st.spinner("AI sedang melukis gambar bersih... Mohon tunggu sebentar..."):
                 encoded_prompt = urllib.parse.quote(refined_prompt)
+                
+                # Parameter nologo=true ditambahkan untuk menghilangkan watermark
                 image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
                 
                 response = requests.get(image_url)
