@@ -43,7 +43,7 @@ if st.button("🚀 Buat Gambar Sesuai Gaya Rujukan", type="primary", use_contain
         try:
             # 1. Menggunakan Gemini Flash-Lite untuk menyempurnakan prompt sesuai rujukan
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.5-flash")
+            model = genai.GenerativeModel("gemini-3.5-flash-lite")
             
             style_reference = (
                 "Consistent style matching an educational children's book illustration: "
